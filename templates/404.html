@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+<title>Страница не найдена</title>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/error.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="error-page text-center py-5">
+    <div class="container">
+        <div class="error-code">404</div>
+        <h1 class="error-title">Страница не найдена</h1>
+        <p class="error-text">Извините, запрашиваемая страница не существует или была перемещена.</p>
+        <a href="{% url 'main:index' %}" class="btn btn-primary">
+            <i class="fas fa-home"></i> Вернуться на главную
+        </a>
+    </div>
+</div>
+{% endblock %}

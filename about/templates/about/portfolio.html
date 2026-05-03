@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+    <title>{{ title }}</title>
+{% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/portfolio.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Модальное окно для полноразмерного изображения -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalImageTitle">Работа из портфолио</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-0">
+                <img src="" id="modalImage" class="img-fluid" alt="Full size image" style="border-radius: 0;">
+                <div class="image-nav">
+                    <button class="nav-btn prev-modal-btn" onclick="navigateModal(-1)">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="nav-btn next-modal-btn" onclick="navigateModal(1)">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="portfolio-section">
+    <div class="container">
+        <!-- Заголовок секции -->
+        <div class="section-header text-center">
+            <h1 class="section-title gradient-text">Мои работы</h1>
+        </div>
+
+        <!-- Сетка портфолио -->
+        <div class="portfolio-grid">
+            {% for object in objects %}
+            <div class="portfolio-item">
+                <div class="portfolio-card">
+                    <!-- Карусель изображений -->
+                    <div class="portfolio-carousel">
+                        <div class="carousel-images">
+                            {% for image in object.images.all %}
+                            <div class="carousel-slide {% if forloop.first %}active{% endif %}">
+                                <img src="{{ image.image.url }}" 
+                                     alt="{{ object.name }}"
+                                     class="portfolio-image clickable-image"
+                                     data-bs-toggle="modal" 
+                                     data-bs-target="#imageModal"
+                                     data-fullsize="{{ image.image.url }}"
+                                     data-index="{{ forloop.counter0 }}"
+                                     data-object-id="{{ object.id }}"
+                                     loading="lazy">
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Навигация -->
+                        {% if object.images.count > 1 %}
+                        <div class="carousel-controls">
+                            <button class="carousel-nav prev-btn">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <div class="carousel-counter">
+                                <span class="current-slide">1</span>
+                                <span class="counter-separator">/</span>
+                                <span class="total-slides">{{ object.images.count }}</span>
+                            </div>
+                            <button class="carousel-nav next-btn">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Информация о работе -->
+                    <div class="portfolio-info">
+                        <h3 class="portfolio-title">{{ object.name }}</h3>
+                        <p class="portfolio-description">{{ object.description }}</p>
+                        
+                        <div class="portfolio-meta">
+                            <span class="portfolio-date">
+                                <i class="fas fa-calendar"></i>
+                                {{ object.created_at|date:"d.m.Y" }}
+                            </span>
+                        </div>
+
+                        <!-- Кнопки действий -->
+                        <div class="portfolio-actions">
+                            <button class="share-btn" onclick="shareWork(this)">
+                                <i class="fas fa-share-alt"></i>
+                                <span>Поделиться</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Пагинация -->
+        {% include "pagination.html" %}
+
+        <!-- CTA секция -->
+        <div class="portfolio-cta">
+            <div class="cta-content">
+                <h2>Хотите такую же прическу?</h2>
+                <p>Запишитесь ко мне получите бесплатную консультацию</p>
+                <a href="{% url 'order:appointment' %}" class="cta-btn primary-btn">
+                    <i class="fas fa-calendar-check"></i>
+                    Записаться
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Инициализация каруселей
+    const portfolioItems = document.querySelectorAll('.portfolio-item');
+    
+    portfolioItems.forEach(item => {
+        const carousel = item.querySelector('.portfolio-carousel');
+        if (!carousel) return;
+        
+        const slides = carousel.querySelectorAll('.carousel-slide');
+        const prevBtn = carousel.querySelector('.prev-btn');
+        const nextBtn = carousel.querySelector('.next-btn');
+        const currentSlideEl = carousel.querySelector('.current-slide');
+        const totalSlidesEl = carousel.querySelector('.total-slides');
+        
+        let currentSlide = 0;
+        
+        if (totalSlidesEl) {
+            totalSlidesEl.textContent = slides.length;
+        }
+        
+        function updateCarousel() {
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active');
+            });
+            
+            slides[currentSlide].classList.add('active');
+            
+            if (currentSlideEl) {
+                currentSlideEl.textContent = currentSlide + 1;
+            }
+        }
+        
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+                updateCarousel();
+            });
+        }
+        
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                currentSlide = (currentSlide + 1) % slides.length;
+                updateCarousel();
+            });
+        }
+        
+        updateCarousel();
+    });
+    
+    // Обработка модального окна
+    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+    const modalImage = document.getElementById('modalImage');
+    const modalTitle = document.getElementById('modalImageTitle');
+    let currentModalIndex = 0;
+    let currentModalImages = [];
+    let currentObjectId = null;
+    
+    document.querySelectorAll('.clickable-image').forEach(img => {
+        img.addEventListener('click', function() {
+            const carousel = this.closest('.portfolio-carousel');
+            const activeSlide = carousel.querySelector('.carousel-slide.active');
+            const activeImage = activeSlide.querySelector('.clickable-image');
+            
+            const fullsizeUrl = activeImage.getAttribute('data-fullsize');
+            const index = parseInt(activeImage.getAttribute('data-index'));
+            const objectId = activeImage.getAttribute('data-object-id');
+            
+            modalImage.src = fullsizeUrl;
+            currentModalIndex = index;
+            currentObjectId = objectId;
+            
+            currentModalImages = [];
+            document.querySelectorAll(`[data-object-id="${objectId}"]`).forEach(img => {
+                currentModalImages.push(img.getAttribute('data-fullsize'));
+            });
+            
+            const portfolioTitle = this.closest('.portfolio-item').querySelector('.portfolio-title');
+            if (portfolioTitle) {
+                modalTitle.textContent = portfolioTitle.textContent;
+            }
+            
+            modal.show();
+        });
+    });
+
+    // Навигация в модальном окне
+    window.navigateModal = function(direction) {
+        if (currentModalImages.length === 0) return;
+        
+        currentModalIndex = (currentModalIndex + direction + currentModalImages.length) % currentModalImages.length;
+        modalImage.style.opacity = '0';
+        
+        setTimeout(() => {
+            modalImage.src = currentModalImages[currentModalIndex];
+            modalImage.style.opacity = '1';
+        }, 300);
+    };
+    
+    // Обработка клавиатуры
+    document.addEventListener('keydown', function(e) {
+        if (modal._isShown) {
+            if (e.key === 'ArrowLeft') navigateModal(-1);
+            if (e.key === 'ArrowRight') navigateModal(1);
+            if (e.key === 'Escape') modal.hide();
+        }
+    });
+});
+
+// Функция для шаринга
+function shareWork(button) {
+    const portfolioCard = button.closest('.portfolio-card');
+    const title = portfolioCard.querySelector('.portfolio-title').textContent;
+    const description = portfolioCard.querySelector('.portfolio-description').textContent;
+    const currentUrl = window.location.href;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: title,
+            text: description,
+            url: currentUrl
+        }).catch(err => console.log('Ошибка шаринга:', err));
+    } else {
+        fallbackShare(title, description, currentUrl);
+    }
+}
+
+function fallbackShare(title, description, url) {
+    let shareModal = document.getElementById('shareModal');
+    
+    if (!shareModal) {
+        shareModal = document.createElement('div');
+        shareModal.id = 'shareModal';
+        shareModal.className = 'share-modal';
+        shareModal.innerHTML = `
+            <div class="share-modal-content">
+                <div class="share-modal-header">
+                    <h4>Поделиться</h4>
+                    <button class="share-modal-close">&times;</button>
+                </div>
+                <div class="share-modal-body">
+                    <div class="share-buttons">
+                        <button onclick="shareToVK()" class="share-vk"><i class="fab fa-vk"></i> VK</button>
+                        <button onclick="shareToTelegram()" class="share-telegram"><i class="fab fa-telegram"></i> Telegram</button>
+                        <button onclick="shareToWhatsApp()" class="share-whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+                        <button onclick="copyToClipboard()" class="share-copy"><i class="fas fa-link"></i> Копировать ссылку</button>
+                    </div>
+                    <div class="share-link-container">
+                        <input type="text" id="shareLink" value="${url}" readonly>
+                        <button onclick="copyToClipboard()" class="copy-link-btn">Копировать</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(shareModal);
+        
+        const closeBtn = shareModal.querySelector('.share-modal-close');
+        closeBtn.addEventListener('click', () => shareModal.classList.remove('active'));
+        shareModal.addEventListener('click', (e) => {
+            if (e.target === shareModal) shareModal.classList.remove('active');
+        });
+    }
+    
+    shareModal.classList.add('active');
+    window.currentShareUrl = url;
+}
+
+function shareToVK() {
+    const url = encodeURIComponent(window.currentShareUrl || window.location.href);
+    window.open(`https://vk.com/share.php?url=${url}`, '_blank', 'width=600,height=400');
+    closeShareModal();
+}
+
+function shareToTelegram() {
+    const url = encodeURIComponent(window.currentShareUrl || window.location.href);
+    window.open(`https://t.me/share/url?url=${url}`, '_blank', 'width=600,height=400');
+    closeShareModal();
+}
+
+function shareToWhatsApp() {
+    const url = encodeURIComponent(window.currentShareUrl || window.location.href);
+    window.open(`https://wa.me/?text=${url}`, '_blank', 'width=600,height=400');
+    closeShareModal();
+}
+
+function copyToClipboard() {
+    const shareLink = document.getElementById('shareLink');
+    if (shareLink) {
+        shareLink.select();
+        document.execCommand('copy');
+        showNotification('Ссылка скопирована в буфер обмена!');
+        closeShareModal();
+    }
+}
+
+function closeShareModal() {
+    const modal = document.getElementById('shareModal');
+    if (modal) modal.classList.remove('active');
+}
+
+function showNotification(message) {
+    let notification = document.getElementById('shareNotification');
+    if (!notification) {
+        notification = document.createElement('div');
+        notification.id = 'shareNotification';
+        notification.className = 'share-notification';
+        document.body.appendChild(notification);
+    }
+    
+    notification.textContent = message;
+    notification.classList.add('show');
+    setTimeout(() => notification.classList.remove('show'), 2000);
+}
+</script>
+{% endblock content %}

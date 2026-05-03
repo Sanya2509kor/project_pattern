@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+<title>{{ title }}</title>
+{% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/about.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="about-section">
+    <!-- Hero секция -->
+    <div class="about-hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">О NameProject</h1>
+                <p class="hero-subtitle">Искусство создания прекрасных причесок</p>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" data-count="200">0</span>
+                        <span class="stat-label">Довольных клиентов</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" data-count="4">0</span>
+                        <span class="stat-label">Года опыта</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" data-count="600">0</span>
+                        <span class="stat-label">Причесок создано</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="container">
+        <div class="about-content">
+            <div class="about-grid">
+                <!-- Изображение -->
+                <div class="about-image">
+                    <div class="image-container">
+                        <img src="{% static 'deps/images/about.jpg' %}" 
+                             alt="О нас" 
+                             class="main-image"
+                             loading="lazy">
+                        <div class="image-overlay">
+                            <div class="play-btn">
+                                <i class="fas fa-play"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Текстовый контент -->
+                <div class="about-text">
+                    <div class="section-header">
+                        <h2 class="section-title">Моя история</h2>
+                        <div class="section-divider"></div>
+                    </div>
+                    
+                    <p class="about-description">{{ description }}</p>
+
+                    <div class="features-list">
+                        {% for g in gal %}
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="feature-content">
+                                <h4 class="feature-title">{{ g }}</h4>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CTA секция -->
+    <div class="about-cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2 class="cta-title">Готовы преобразиться?</h2>
+                <p class="cta-text">Запишитесь на консультацию и получите индивидуальный подход</p>
+                <div class="cta-buttons">
+                    <a href="{% url 'order:appointment' %}" class="cta-btn primary-btn">
+                        <i class="fas fa-calendar-check"></i>
+                        Записаться онлайн
+                    </a>
+                    <a href="tel:+79999999999" class="cta-btn secondary-btn">
+                        <i class="fas fa-phone"></i>
+                        Позвонить нам
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Анимация счетчиков
+    const counters = document.querySelectorAll('.stat-number');
+    const speed = 2000;
+    
+    counters.forEach(counter => {
+        const target = parseInt(counter.getAttribute('data-count'));
+        let current = 0;
+        const increment = Math.ceil(target / speed);
+        
+        const updateCount = () => {
+            if (current < target) {
+                current += increment;
+                if (current > target) current = target;
+                counter.textContent = current;
+                setTimeout(updateCount, 1);
+            }
+        };
+        
+        updateCount();
+    });
+    
+    // Параллакс эффект для hero секции
+    window.addEventListener('scroll', function() {
+        const scrolled = window.pageYOffset;
+        const parallax = document.querySelector('.about-hero');
+        if (parallax) {
+            parallax.style.transform = `translateY(${scrolled * 0.4}px)`;
+        }
+    });
+});
+</script>
+{% endblock content %}

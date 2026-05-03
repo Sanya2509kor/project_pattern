@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+<title>{{ title }}</title>
+{% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/appointment.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="appointment-page">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <div class="appointment-card">
+                    <div class="appointment-header text-center">
+                        <h1 class="appointment-title">
+                            <i class="fas fa-calendar-check me-3"></i>Запись на услугу
+                        </h1>
+                        <p class="appointment-subtitle">Выберите удобное время и дату</p>
+                    </div>
+
+                    <form method="post" id="appointmentForm" class="appointment-form">
+                        {% csrf_token %}
+                        
+                        <!-- Основная информация -->
+                        <div class="form-group mb-4">
+                            <label for="id_date" class="form-label">
+                                <i class="fas fa-calendar-alt me-2"></i>Дата
+                            </label>
+                            <div class="input-wrapper">
+                                {{ form.date }}
+                                <i class="fas fa-calendar input-icon"></i>
+                            </div>
+                            {% if form.date.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.date.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group mb-4">
+                            <label for="id_time" class="form-label">
+                                <i class="fas fa-clock me-2"></i>Время
+                            </label>
+                            <div class="input-wrapper">
+                                {{ form.time }}
+                                <i class="fas fa-clock input-icon"></i>
+                            </div>
+                            {% if form.time.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.time.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group mb-4">
+                            <label for="id_product" class="form-label">
+                                <i class="fas fa-concierge-bell me-2"></i>Услуга
+                            </label>
+                            <div class="input-wrapper">
+                                {{ form.product }}
+                                <i class="fas fa-spa input-icon"></i>
+                            </div>
+                            {% if form.product.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.product.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group mb-4">
+                            <label for="id_name" class="form-label">
+                                <i class="fas fa-user me-2"></i>Ваше имя
+                            </label>
+                            <div class="input-wrapper">
+                                {{ form.name }}
+                                <i class="fas fa-user input-icon"></i>
+                            </div>
+                            {% if form.name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.name.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group mb-4">
+                            <label for="id_phone" class="form-label">
+                                <i class="fas fa-phone me-2"></i>Телефон
+                            </label>
+                            <div class="input-wrapper">
+                                {{ form.phone }}
+                                <i class="fas fa-phone input-icon"></i>
+                            </div>
+                            {% if form.phone.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.phone.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Цвета -->
+                        {% if form.colors.field.queryset %}
+                        <div class="form-group mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-palette me-2"></i>Выберите цвета
+                            </label>
+                            <div class="color-options">
+                                {% for color in form.colors.field.queryset %}
+                                <label class="color-option">
+                                    <input type="checkbox" name="colors" value="{{ color.id }}" 
+                                           class="color-checkbox"{% if color.id in form.colors.value %}checked{% endif %}>
+                                    {% if color.image %}
+                                        <img src="{{ color.image.url }}" alt="{{ color.name }}" 
+                                             class="color-image" width="60" height="60" loading="lazy">
+                                        <span class="color-name-badge">{{ color.name }}</span>
+                                    {% else %}
+                                        <span class="color-name">{{ color.name }}</span>
+                                    {% endif %}
+                                </label>
+                                {% endfor %}
+                            </div>
+                            {% if form.colors.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.colors.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="form-group mb-4">
+                            <label for="id_comment" class="form-label">
+                                <i class="fas fa-comment me-2"></i>Комментарий
+                            </label>
+                            <div class="input-wrapper">
+                                {{ form.comment }}
+                                <i class="fas fa-edit input-icon"></i>
+                            </div>
+                        </div>
+
+                        <!-- Кнопка отправки -->
+                        <div class="text-center mt-4">
+                            {% if make_appoint %}
+                                <button type="submit" class="btn-appointment">
+                                    <i class="fas fa-paper-plane me-2"></i>Записаться
+                                </button>
+                            {% else %}
+                                <button type="button" class="btn-appointment btn-disabled" disabled>
+                                    <i class="fas fa-clock me-2"></i>Запись временно недоступна
+                                </button>
+                            {% endif %}
+                        </div>
+                    </form>
+
+                    <!-- Дополнительная информация -->
+                    <div class="appointment-info">
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="info-icon-wrapper">
+                                    <i class="fas fa-clock info-icon"></i>
+                                </div>
+                                <h5>Подтверждение</h5>
+                                <p>В течение 15 минут</p>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-icon-wrapper">
+                                    <i class="fas fa-undo info-icon"></i>
+                                </div>
+                                <h5>Отмена записи</h5>
+                                <p>За 24 часа бесплатно</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'deps/js/jquery/jquery-3.7.0.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    // AJAX загрузка времени при изменении даты
+    $("#id_date").on('change', function() {
+        const selectedDate = $(this).val();
+        
+        if (selectedDate) {
+            $.ajax({
+                url: "{% url 'order:ajax_load_times' %}",
+                type: "GET",
+                data: { 'date': selectedDate },
+                beforeSend: function() {
+                    $("#id_time").html('<option value="">Загрузка...</option>');
+                },
+                success: function(data) {
+                    $("#id_time").html(data);
+                    $("#id_time").addClass('fade-in');
+                    setTimeout(function() {
+                        $("#id_time").removeClass('fade-in');
+                    }, 300);
+                },
+                error: function() {
+                    $("#id_time").html('<option value="">Ошибка загрузки</option>');
+                }
+            });
+        }
+    });
+
+    // Маска для телефона
+    $('#id_phone').on('input', function(e) {
+        let value = e.target.value.replace(/[^\d+]/g, '');
+        
+        if (!value.startsWith('+7') && !value.startsWith('7') && !value.startsWith('8')) {
+            value = '+7';
+        }
+        
+        let formatted = value
+            .replace(/^(\+?7|8)(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})/, function(match, p1, p2, p3, p4, p5) {
+                let result = '+7';
+                if (p2) result += p2;
+                if (p3) result += p3;
+                if (p4) result += p4;
+                if (p5) result += p5;
+                return result;
+            });
+        
+        e.target.value = formatted;
+    });
+
+    // Валидация формы
+    $("#appointmentForm").on('submit', function(e) {
+        let isValid = true;
+        
+        $('.input-wrapper input[required], .input-wrapper select[required]').each(function() {
+            if (!$(this).val()) {
+                $(this).addClass('is-invalid');
+                isValid = false;
+            } else {
+                $(this).removeClass('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            $('html, body').animate({
+                scrollTop: $('.is-invalid').first().offset().top - 100
+            }, 500);
+            
+            $('.is-invalid').first().addClass('shake');
+            setTimeout(function() {
+                $('.is-invalid').removeClass('shake');
+            }, 500);
+        }
+    });
+});
+</script>
+{% endblock content %}

@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+<title>{{ title }}</title>
+{% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/reviews.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="my-reviews-page">
+    <div class="container">
+        <div class="page-header text-center mb-5">
+            <h1 class="page-title">
+                <i class="fas fa-comments me-3"></i>
+                Мои отзывы
+            </h1>
+            <p class="page-subtitle">Все ваши отзывы в одном месте</p>
+        </div>
+
+        {% if not my_reviews %}
+        <div class="empty-state text-center p-5">
+            <div class="empty-icon mb-4">
+                <i class="fas fa-comment-slash"></i>
+            </div>
+            <h3 class="mb-3">Отзывов пока нет</h3>
+            <p class="text-muted mb-4">Вы еще не оставляли отзывов. Поделитесь вашим опытом!</p>
+            <a href="{% url 'reviews:add_review' %}" class="btn btn-primary btn-lg rounded-pill px-4">
+                <i class="fas fa-plus me-2"></i>
+                Оставить первый отзыв
+            </a>
+        </div>
+        {% else %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+            {% for review in my_reviews %}
+            <div class="col">
+                <div class="review-card border-0 shadow-sm {% if current_date < review.expiry_date %}border-start border-4 border-success{% else %}border-start border-4 border-primary{% endif %}">
+                    <div class="card-body p-4">
+                        <div class="review-header d-flex justify-content-between align-items-start mb-3">
+                            <div class="user-info d-flex align-items-center">
+                                {% if review.user.image %}
+                                <img src="{{ review.user.image.url }}" alt="{{ review.user.username }}" 
+                                     class="user-avatar rounded-circle me-3" width="50" height="50" loading="lazy">
+                                {% else %}
+                                <div class="avatar-placeholder rounded-circle d-flex align-items-center justify-content-center me-3">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                {% endif %}
+                                <div class="user-details">
+                                    <h6 class="username mb-1 fw-bold">{{ review.user.username }}</h6>
+                                    <div class="rating-stars">
+                                        {% for i in "12345"|make_list %}
+                                        <i class="fas fa-star{% if forloop.counter > review.stars %}-o{% endif %}"></i>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="review-meta text-end">
+                                <span class="review-date d-block text-muted small">{{ review.created_at|date:"d.m.Y" }}</span>
+                                {% if current_date < review.expiry_date %}
+                                <span class="edit-badge badge bg-success mt-1">Можно редактировать</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="review-content mb-3">
+                            <p class="review-text mb-2">{{ review.comment|truncatewords:30 }}</p>
+                            {% if review.comment|wordcount > 30 %}
+                            <button class="btn btn-link p-0 text-primary read-more-btn" data-bs-toggle="modal" data-bs-target="#reviewModal{{ review.id }}">
+                                Читать полностью
+                            </button>
+                            {% endif %}
+                        </div>
+
+                        <div class="review-actions d-flex gap-2">
+                            {% if current_date < review.expiry_date %}
+                            <a href="{% url 'reviews:edit_review' review.id %}" class="btn btn-primary btn-sm rounded-pill">
+                                <i class="fas fa-edit me-1"></i>
+                                Редактировать
+                            </a>
+                            {% endif %}
+                            <button class="btn btn-outline-secondary btn-sm rounded-pill share-btn" data-review-id="{{ review.id }}">
+                                <i class="fas fa-share-alt me-1"></i>
+                                Поделиться
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Модальное окно -->
+            <div class="modal fade" id="reviewModal{{ review.id }}" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Полный текст отзыва</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="modal-rating mb-3">
+                                {% for i in "12345"|make_list %}
+                                <i class="fas fa-star{% if forloop.counter > review.stars %}-o{% endif %}"></i>
+                                {% endfor %}
+                            </div>
+                            <p class="modal-text">{{ review.comment|linebreaksbr }}</p>
+                            <div class="modal-date text-muted small text-end mt-3">
+                                Оставлен {{ review.created_at|date:"d.m.Y в H:i" }}
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Статистика -->
+        {% if my_reviews %}
+        <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+            <div class="col">
+                <div class="stat-card card border-0 shadow-sm text-center h-100">
+                    <div class="card-body p-4">
+                        <div class="stat-icon mx-auto mb-3 rounded-circle">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <h3 class="fw-bold">{{ average_rating|default:"5.0"|floatformat:1 }}</h3>
+                        <p class="text-muted mb-0">Средняя оценка</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="stat-card card border-0 shadow-sm text-center h-100">
+                    <div class="card-body p-4">
+                        <div class="stat-icon mx-auto mb-3 rounded-circle">
+                            <i class="fas fa-comment"></i>
+                        </div>
+                        <h3 class="fw-bold">{{ my_reviews|length }}</h3>
+                        <p class="text-muted mb-0">Всего отзывов</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.share-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Мой отзыв о NameProject',
+                    text: 'Посмотрите мой отзыв о салоне красоты NameProject',
+                    url: window.location.href
+                }).catch(console.error);
+            } else {
+                alert('Скопируйте ссылку из адресной строки браузера, чтобы поделиться');
+            }
+        });
+    });
+});
+</script>
+{% endblock content %}

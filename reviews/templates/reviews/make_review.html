@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+<title>{{ title }}</title>
+{% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/reviews.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="review-page">
+    <div class="container">
+        <div class="review-form-container">
+            <div class="review-form-card">
+                <div class="form-header">
+                    <h1 class="form-title">
+                        <i class="fas fa-star"></i>
+                        Оставить отзыв
+                    </h1>
+                    <p class="form-subtitle">Поделитесь вашим опытом и помогите другим сделать правильный выбор</p>
+                </div>
+
+                <form method="post" id="reviewForm" class="review-form">
+                    {% csrf_token %}
+                    
+                    <!-- Рейтинг -->
+                    <div class="rating-section">
+                        <label class="rating-label">Ваша оценка</label>
+                        <div class="stars-rating">
+                            {% for i in "12345" %}
+                            <input type="radio" 
+                                name="stars" 
+                                value="{{ i }}" 
+                                id="star{{ i }}" 
+                                class="star-input"
+                                {% if form.stars.value == i|add:0 %}checked{% endif %}>
+                            <label for="star{{ i }}" class="star-label" data-value="{{ i }}">
+                                <i class="fas fa-star"></i>
+                            </label>
+                            {% endfor %}
+                        </div>
+                        {% if form.stars.errors %}
+                        <div class="error-message">{{ form.stars.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Комментарий -->
+                    <div class="comment-section">
+                        <label for="id_comment" class="comment-label">
+                            <i class="fas fa-comment"></i>
+                            Ваш комментарий
+                        </label>
+                        <div class="comment-wrapper">
+                            {{ form.comment }}
+                            <div class="comment-counter">
+                                <span id="charCount">0</span>/500
+                            </div>
+                        </div>
+                        {% if form.comment.errors %}
+                        <div class="error-message">{{ form.comment.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Кнопки -->
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn primary-btn">
+                            <i class="fas fa-paper-plane"></i>
+                            Опубликовать отзыв
+                        </button>
+                        <a href="{% url 'reviews:reviews' %}" class="cancel-btn secondary-btn">
+                            <i class="fas fa-times"></i>
+                            Отмена
+                        </a>
+                    </div>
+                </form>
+
+                <!-- Подсказки -->
+                <div class="form-tips">
+                    <div class="tip-item">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>Опишите ваш опыт подробнее - это поможет другим клиентам</span>
+                    </div>
+                    <div class="tip-item">
+                        <i class="fas fa-heart"></i>
+                        <span>Мы ценим ваше мнение и постоянно работаем над улучшением</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const commentField = document.getElementById('id_comment');
+    const charCount = document.getElementById('charCount');
+    
+    if (commentField && charCount) {
+        charCount.textContent = commentField.value.length;
+        
+        commentField.addEventListener('input', function() {
+            const length = this.value.length;
+            charCount.textContent = length;
+            
+            if (length > 450) {
+                charCount.style.color = '#DC2626';
+            } else if (length > 400) {
+                charCount.style.color = '#F59E0B';
+            } else {
+                charCount.style.color = '#6B7280';
+            }
+        });
+    }
+    
+    const reviewForm = document.getElementById('reviewForm');
+    if (reviewForm) {
+        reviewForm.addEventListener('submit', function(e) {
+            const rating = document.querySelector('input[name="stars"]:checked');
+            const comment = document.getElementById('id_comment');
+            
+            if (!rating) {
+                e.preventDefault();
+                alert('Пожалуйста, выберите оценку');
+                return false;
+            }
+            
+            if (comment.value.trim().length < 10) {
+                e.preventDefault();
+                alert('Комментарий должен содержать не менее 10 символов');
+                return false;
+            }
+            
+            if (comment.value.length > 500) {
+                e.preventDefault();
+                alert('Комментарий не должен превышать 500 символов');
+                return false;
+            }
+        });
+    }
+    
+    // Работа со звездами
+    const starLabels = document.querySelectorAll('.star-label');
+    const starsContainer = document.querySelector('.stars-rating');
+    
+    function updateStarsDisplay(selectedValue) {
+        starLabels.forEach(label => {
+            const starValue = parseInt(label.getAttribute('data-value'));
+            if (starValue <= selectedValue) {
+                label.style.color = '#FFD700';
+            } else {
+                label.style.color = '#E5E7EB';
+            }
+        });
+    }
+    
+    starLabels.forEach(label => {
+        label.addEventListener('click', function() {
+            const starValue = parseInt(this.getAttribute('data-value'));
+            document.querySelector(`#star${starValue}`).checked = true;
+            updateStarsDisplay(starValue);
+        });
+        
+        label.addEventListener('mouseenter', function() {
+            const hoverValue = parseInt(this.getAttribute('data-value'));
+            updateStarsDisplay(hoverValue);
+        });
+    });
+    
+    if (starsContainer) {
+        starsContainer.addEventListener('mouseleave', function() {
+            const checkedStar = document.querySelector('.star-input:checked');
+            if (checkedStar) {
+                updateStarsDisplay(parseInt(checkedStar.value));
+            } else {
+                starLabels.forEach(label => {
+                    label.style.color = '#E5E7EB';
+                });
+            }
+        });
+    }
+    
+    const initialCheckedStar = document.querySelector('.star-input:checked');
+    if (initialCheckedStar) {
+        updateStarsDisplay(parseInt(initialCheckedStar.value));
+    }
+});
+</script>
+{% endblock content %}

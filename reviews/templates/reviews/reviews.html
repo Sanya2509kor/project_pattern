@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+<title>{{ title }}</title>
+{% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/reviews.css' %}">
+{% endblock %}
+
+{% block content %}
+<section id="reviews" class="reviews-section py-5">
+    <div class="container">
+        <!-- Заголовок секции -->
+        <div class="text-center mb-5">
+            <h1 class="fw-bold gradient-text mb-3 display-4">Отзывы наших клиентов</h1>
+            <p class="text-muted fs-5">Что говорят о нас довольные клиенты</p>
+            
+            <!-- Кнопки действий -->
+            <div class="d-flex flex-column flex-md-row gap-3 justify-content-center mt-4">
+                {% if user.is_authenticated %}
+                    <a class="btn btn-primary btn-lg rounded-pill px-4" href="{% url 'reviews:my_reviews' %}">
+                        <i class="fas fa-star me-2"></i>Мои отзывы
+                    </a>
+                    {% if not user_has_comment %}
+                        <button class="btn btn-outline-primary btn-lg rounded-pill px-4" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#addReviewModal">
+                            <i class="fas fa-plus me-2"></i>Оставить отзыв
+                        </button>
+                    {% else %}
+                        <a class="btn btn-primary btn-lg rounded-pill px-4" href="{% url 'reviews:add_review' %}">
+                            <i class="fas fa-plus me-2"></i>Оставить отзыв
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <button class="btn btn-primary btn-lg rounded-pill px-4" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#loginModal">
+                        <i class="fas fa-pen me-2"></i>Оставить отзыв
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Сетка отзывов -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for review in reviews %}
+            <div class="col">
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="review-avatar">
+                            {% if review.user.image %}
+                                <img src="{{ review.user.image.url }}" class="review-avatar-img" 
+                                     alt="{{ review.user.username }}" width="60" height="60" loading="lazy">
+                            {% else %}
+                                <div class="review-avatar-placeholder">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="review-user-info">
+                            <h5 class="review-username">{{ review.user.username }}</h5>
+                            <div class="review-rating">
+                                {% for i in "12345"|make_list %}
+                                    <i class="fas fa-star{% if forloop.counter > review.stars %}-o{% endif %}"></i>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="review-content">
+                        {% if review.comment|length > 120 %}
+                            <p class="review-text">{{ review.comment|truncatechars:120 }}</p>
+                            <button class="btn-read-more" data-bs-toggle="modal" data-bs-target="#reviewModal{{ review.id }}">
+                                Читать полностью
+                            </button>
+                        {% else %}
+                            <p class="review-text">{{ review.comment|linebreaksbr }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="review-footer">
+                        <small class="text-muted">{{ review.created_at|date:"d.m.Y" }}</small>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Пагинация -->
+        {% include "pagination.html" %}
+    </div>
+</section>
+
+<!-- Модальные окна -->
+{% for review in reviews %}
+{% if review.comment|length > 120 %}
+<div class="modal fade review-modal" id="reviewModal{{ review.id }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="d-flex align-items-center">
+                    {% if review.user.image %}
+                        <img src="{{ review.user.image.url }}" class="modal-avatar me-3" 
+                             alt="{{ review.user.username }}" width="50" height="50" loading="lazy">
+                    {% else %}
+                        <div class="modal-avatar-placeholder me-3">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    {% endif %}
+                    <div>
+                        <h5 class="modal-title mb-0">{{ review.user.username }}</h5>
+                        <div class="modal-rating">
+                            {% for i in "12345"|make_list %}
+                                <i class="fas fa-star{% if forloop.counter > review.stars %}-o{% endif %}"></i>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-review-text">{{ review.comment|linebreaksbr }}</p>
+            </div>
+            <div class="modal-footer">
+                <small class="text-muted me-auto">{{ review.created_at|date:"d.m.Y H:i" }}</small>
+                <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+
+<!-- Модальное окно входа -->
+<div class="modal fade" id="loginModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title gradient-text">Вход в систему</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="modal-icon mb-3">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <p class="mb-4">Чтобы оставить отзыв, пожалуйста, войдите в систему</p>
+                <a href="{% url 'user:login' %}?next={{ request.path }}" class="btn btn-primary btn-lg rounded-pill px-4 w-100">
+                    Войти
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно уведомления -->
+<div class="modal fade" id="addReviewModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title gradient-text">Уведомление</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="modal-icon mb-3">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <p class="mb-3">Вы уже оставили отзыв. Спасибо за ваше мнение!</p>
+                <p class="text-muted mb-4">Вы можете просмотреть или изменить его в разделе "Мои отзывы"</p>
+                <div class="d-flex gap-3 justify-content-center">
+                    <button type="button" class="btn btn-outline-primary rounded-pill px-4" data-bs-dismiss="modal">Закрыть</button>
+                    <a href="{% url 'reviews:my_reviews' %}" class="btn btn-primary rounded-pill px-4">Мои отзывы</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

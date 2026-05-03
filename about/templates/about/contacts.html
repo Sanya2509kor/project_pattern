@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+    <title>{{ title }}</title>
+{% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/contacts.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="contacts-section">
+    <!-- Hero секция -->
+    <div class="contacts-hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">Свяжитесь со мной</h1>
+                <p class="hero-subtitle">Я всегда рады помочь вам создать идеальный образ</p>
+                <div class="hero-decoration">
+                    <div class="decoration-item"></div>
+                    <div class="decoration-item"></div>
+                    <div class="decoration-item"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="contacts-content">
+            <!-- Контактная информация -->
+            <div class="contacts-grid">
+                <div class="contacts-info">
+                    <div class="info-card">
+                        <div class="info-header">
+                            <h2 class="info-title">Мои контакты</h2>
+                            <p class="info-subtitle">Я всегда на связи</p>
+                        </div>
+
+                        <div class="contact-items">
+                            <div class="contact-item">
+                                <div class="contact-icon">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <h4 class="contact-label">Адрес</h4>
+                                    <p class="contact-value">{{ adress }}</p>
+                                </div>
+                            </div>
+
+                            <div class="contact-item">
+                                <div class="contact-icon">
+                                    <i class="fas fa-phone-alt"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <h4 class="contact-label">Телефон</h4>
+                                    <p class="contact-value">
+                                        <a href="tel:{{ phone }}" class="contact-link">{{ phone }}</a>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="contact-item">
+                                <div class="contact-icon">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <h4 class="contact-label">Email</h4>
+                                    <p class="contact-value">
+                                        <a href="mailto:{{ mail }}" class="contact-link">{{ mail }}</a>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="contact-item">
+                                <div class="contact-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <h4 class="contact-label">Часы работы</h4>
+                                    <p class="contact-value">Ежедневно с 10:00 до 20:00</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="social-links">
+                            <h4 class="social-title">Я в соцсетях</h4>
+                            <div class="social-buttons">
+                                <a href="https://www.instagram.com/reviaginaviktoriia/" class="social-btn">
+                                    <i class="fab fa-instagram"></i>
+                                </a>
+                                <a href="https://vk.com/NameProject" class="social-btn">
+                                    <i class="fab fa-vk"></i>
+                                </a>
+                                <a href="https://t.me/NameProject08" class="social-btn">
+                                    <i class="fab fa-telegram"></i>
+                                </a>
+                                <a href="https://wa.me/79836927753" class="social-btn">
+                                    <i class="fab fa-whatsapp"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Параллакс эффект для hero
+    window.addEventListener('scroll', function() {
+        const scrolled = window.pageYOffset;
+        const hero = document.querySelector('.contacts-hero');
+        if (hero) {
+            hero.style.transform = `translateY(${scrolled * 0.4}px)`;
+        }
+    });
+});
+</script>
+{% endblock content %}

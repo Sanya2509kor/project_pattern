@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+<title>{{ title }}</title>
+{% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/product.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="product-page">
+    <div class="container">
+        <div class="back-to-home mb-4">
+            <a href="{% url 'main:index' %}" class="back-button">
+                <i class="fas fa-arrow-left me-2"></i>
+                <span>На главную</span>
+            </a>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6 mb-4">
+                <div class="product-gallery">
+                    <div class="main-image-container" id="swipeContainer">
+                        <img id="mainImage" src="{{ product.image.url }}" alt="{{ product.name|escape }}" 
+                             class="main-image rounded-3 shadow"
+                             width="600"
+                             height="600"
+                             loading="eager">
+                        <button class="gallery-nav-btn prev-btn" onclick="prevImage()" aria-label="Предыдущее изображение">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="gallery-nav-btn next-btn" onclick="nextImage()" aria-label="Следующее изображение">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="thumbnails" id="thumbnailsContainer">
+                        <div class="thumbnail-wrapper {% if not product.images.all %}active{% endif %}">
+                            <img src="{{ product.image.url }}" class="thumbnail" 
+                                 onclick="changeImage(0)" 
+                                 alt="{{ product.name|escape }}"
+                                 width="70"
+                                 height="70"
+                                 loading="lazy">
+                        </div>
+                        
+                        {% for image in product.images.all %}
+                        <div class="thumbnail-wrapper">
+                            <img src="{{ image.image.url }}" class="thumbnail" 
+                                 onclick="changeImage({{ forloop.counter }})" 
+                                 alt="{{ image.description|default:product.name|escape }}"
+                                 width="70"
+                                 height="70"
+                                 loading="lazy">
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="product-info">
+                    <h1 class="product-title mb-3">{{ product.name|escape }}</h1>
+                    <p class="product-description text-muted mb-4">{{ product.description|escape|linebreaksbr }}</p>
+                    
+                    <div class="price-section mb-4">
+                        {% if product.has_discount %}
+                            <div class="price-container">
+                                <span class="old-price-big">{{ product.price }} ₽</span>
+                                <span class="price-badge">{{ product.get_discounted_price|floatformat:0 }} ₽</span>
+                                <span class="discount-badge-large">-{{ product.get_discount_percent }}%</span>
+                            </div>
+                        {% else %}
+                            <span class="price-badge">{{ product.price }} ₽</span>
+                        {% endif %}
+                        {% if product.price_str %}
+                            <span class="price-unit-text">{{ product.price_str }}</span>
+                        {% endif %}
+                    </div>
+
+                    {% if product.available_colors.all %}
+                    <div class="color-section mb-4">
+                        <h5 class="mb-3">Доступные цвета:</h5>
+                        <div class="color-options">
+                            {% for color in product.available_colors.all %}
+                            <label class="color-option">
+                                <input type="checkbox" name="colors" value="{{ color.id }}" class="color-checkbox">
+                                {% if color.image %}
+                                    <img src="{{ color.image.url }}" alt="{{ color.name|escape }}" 
+                                         class="color-image rounded-2"
+                                         width="60"
+                                         height="60"
+                                         loading="lazy">
+                                    <span class="color-tooltip">{{ color.name }}</span>
+                                {% else %}
+                                    <span class="color-name">{{ color.name|escape }}</span>
+                                {% endif %}
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="booking-section">
+                        <a href="{% url 'order:appointment' %}?product_id={{ product.id }}" 
+                           id="appointmentLink" 
+                           class="btn btn-primary btn-lg w-100 rounded-pill booking-btn">
+                           <i class="fas fa-calendar-check me-2"></i>Записаться онлайн
+                        </a>
+                        <p class="text-muted text-center mt-2 small">
+                            <i class="fas fa-clock me-1"></i>Запись подтверждается в течение 15 минут
+                        </p>
+                    </div>
+
+                    <div class="product-features mt-4">
+                        <div class="feature-item">
+                            <i class="fas fa-clock feature-icon"></i>
+                            <span>Время выполнения: {{ product.make_time|default:"1-2 часа" }}</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check-circle feature-icon"></i>
+                            <span>Гарантия качества</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-star feature-icon"></i>
+                            <span>Бесплатная консультация</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Собираем все URL изображений в массив
+const images = [
+    "{{ product.image.url }}",
+    {% for image in product.images.all %}
+        "{{ image.image.url }}",
+    {% endfor %}
+];
+
+let currentIndex = 0;
+const mainImage = document.getElementById('mainImage');
+const thumbnails = document.querySelectorAll('.thumbnail-wrapper');
+const swipeContainer = document.getElementById('swipeContainer');
+
+if (mainImage && images.length > 0) {
+    function updateGallery() {
+        requestAnimationFrame(() => {
+            mainImage.style.opacity = '0';
+            
+            setTimeout(() => {
+                mainImage.src = images[currentIndex];
+                mainImage.alt = 'Изображение {{ product.name|escape }}';
+                mainImage.style.opacity = '1';
+                
+                thumbnails.forEach((wrapper, index) => {
+                    wrapper.classList.toggle('active', index === currentIndex);
+                });
+            }, 300);
+        });
+    }
+    
+    window.changeImage = function(index) {
+        if (index === currentIndex) return;
+        currentIndex = index;
+        updateGallery();
+    };
+    
+    window.nextImage = function() {
+        currentIndex = (currentIndex + 1) % images.length;
+        updateGallery();
+    };
+    
+    window.prevImage = function() {
+        currentIndex = (currentIndex - 1 + images.length) % images.length;
+        updateGallery();
+    };
+    
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') window.nextImage();
+        if (e.key === 'ArrowLeft') window.prevImage();
+    });
+    
+    if (swipeContainer) {
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        swipeContainer.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, {passive: true});
+        
+        swipeContainer.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            const swipeThreshold = 50;
+            
+            if (touchStartX - touchEndX > swipeThreshold) {
+                window.nextImage();
+            } else if (touchEndX - touchStartX > swipeThreshold) {
+                window.prevImage();
+            }
+        }, {passive: true});
+    }
+    
+    updateGallery();
+}
+
+const appointmentLink = document.getElementById('appointmentLink');
+if (appointmentLink) {
+    appointmentLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const selectedColors = Array.from(document.querySelectorAll('.color-checkbox:checked'))
+                                .map(checkbox => checkbox.value);
+        
+        const baseUrl = this.href.split('?')[0];
+        const params = new URLSearchParams();
+        params.append('product_id', '{{ product.id }}');
+        selectedColors.forEach(color => params.append('colors', color));
+        
+        window.location.href = `${baseUrl}?${params.toString()}`;
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animation = 'fadeIn 0.6s ease forwards';
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+        
+        document.querySelectorAll('.product-info > *').forEach(el => {
+            observer.observe(el);
+        });
+    }
+});
+</script>
+{% endblock content %}

@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+<title>{{ title }}</title>
+{% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/profile.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="modern-profile">
+    <div class="mobile-nav-tabs d-lg-none">
+        <button class="nav-tab active" data-target="appointments">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Записи</span>
+        </button>
+        <button class="nav-tab" data-target="profile">
+            <i class="fas fa-user"></i>
+            <span>Профиль</span>
+        </button>
+    </div>
+
+    <div class="container">
+        <div class="profile-content">
+            <div class="content-section active" id="appointments-section">
+                {% if current_app or future_app or past_app %}
+                <div class="modern-card">
+                    {% if current_app %}
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-calendar-day"></i>
+                            <span>Сегодня</span>
+                            <span class="badge">{{ current_app|length }}</span>
+                        </h2>
+                    </div>
+                    <div class="appointments-list">
+                        {% for appointment in current_app %}
+                        <div class="appointment-item current">
+                            <div class="appointment-badge">
+                                <div class="date-badge">
+                                    <span class="day">{{ appointment.date.date|date:"d" }}</span>
+                                    <span class="month">{{ appointment.date.date|date:"M" }}</span>
+                                </div>
+                            </div>
+                            <div class="appointment-content">
+                                <h3 class="service-name">{{ appointment.product.name }}</h3>
+                                <div class="appointment-meta">
+                                    <span class="time">
+                                        <i class="fas fa-clock"></i>
+                                        {{ appointment.time.time|time:"H:i" }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="appointment-status current">Сейчас</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    {% if future_app %}
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-calendar-check"></i>
+                            <span>Ближайшие</span>
+                            <span class="badge">{{ future_app|length }}</span>
+                        </h2>
+                    </div>
+                    <div class="appointments-list">
+                        {% for appointment in future_app %}
+                        <div class="appointment-item upcoming">
+                            <div class="appointment-badge">
+                                <div class="date-badge">
+                                    <span class="day">{{ appointment.date.date|date:"d" }}</span>
+                                    <span class="month">{{ appointment.date.date|date:"M" }}</span>
+                                </div>
+                            </div>
+                            <div class="appointment-content">
+                                <h3 class="service-name">{{ appointment.product.name }}</h3>
+                                <div class="appointment-meta">
+                                    <span class="time">
+                                        <i class="fas fa-clock"></i>
+                                        {{ appointment.time.time|time:"H:i" }}
+                                    </span>
+                                    <span class="days-left">
+                                        {% with days=appointment.date.date|timeuntil:today %}
+                                        через {{ days }}
+                                        {% endwith %}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="appointment-status upcoming">Скоро</div>
+                        </div>
+                        {% endfor %}
+                        <button class="btn-cancel-appointment" onclick="contactMaster()" title="Отменить запись - напишите мастеру">
+                            <i class="fas fa-times-circle"></i>
+                            <span>Для отмены напишите мастеру</span>
+                        </button>
+                    </div>
+                    {% endif %}
+
+                    {% if past_app %}
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-history"></i>
+                            <span>История</span>
+                            <span class="badge">{{ past_app|length }}</span>
+                        </h2>
+                    </div>
+                    <div class="appointments-list">
+                        {% for appointment in past_app %}
+                        <div class="appointment-item completed">
+                            <div class="appointment-badge">
+                                <div class="date-badge">
+                                    <span class="day">{{ appointment.date.date|date:"d" }}</span>
+                                    <span class="month">{{ appointment.date.date|date:"M" }}</span>
+                                </div>
+                            </div>
+                            <div class="appointment-content">
+                                <h3 class="service-name">{{ appointment.product.name }}</h3>
+                                <div class="appointment-meta">
+                                    <span class="time">
+                                        <i class="fas fa-clock"></i>
+                                        {{ appointment.time.time|time:"H:i" }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="appointment-status completed">Готово</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-calendar-plus"></i>
+                    </div>
+                    <h3>Записей пока нет</h3>
+                    <p>Запишитесь на услугу, и она появится здесь</p>
+                    <a href="{% url 'order:appointment' %}" class="btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Записаться
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="content-section" id="profile-section">
+                <div class="modern-card">
+                    <div class="profile-header">
+                        <div class="avatar-editor">
+                            <div class="avatar-container">
+                                {% if user.image %}
+                                    <img src="{{ user.image.url }}" alt="Аватар" class="avatar" width="100" height="100" loading="lazy">
+                                {% else %}
+                                    <div class="avatar-default">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                {% endif %}
+                                <label class="avatar-upload">
+                                    <input type="file" id="id_image" name="image" accept="image/*">
+                                    <i class="fas fa-camera"></i>
+                                </label>
+                            </div>
+                        </div>
+                        <h2 class="user-name">{{ user.first_name|default:user.username }}</h2>
+                    </div>
+
+                    <form action="{% url 'users:profile' %}" method="post" enctype="multipart/form-data" class="profile-form">
+                        {% csrf_token %}
+                        
+                        <div class="form-fields">
+                            <div class="input-field">
+                                <label for="id_first_name">
+                                    <i class="fas fa-user"></i>
+                                    Имя
+                                </label>
+                                {{ form.first_name }}
+                            </div>
+
+                            <div class="input-field">
+                                <label for="id_username">
+                                    <i class="fas fa-at"></i>
+                                    Логин
+                                </label>
+                                {{ form.username }}
+                            </div>
+
+                            <div class="input-field">
+                                <label for="id_phone_number">
+                                    <i class="fas fa-phone"></i>
+                                    Телефон
+                                </label>
+                                <input type="text" 
+                                    id="id_phone_number" 
+                                    name="phone_number" 
+                                    value="{{ form.phone_number.value }}" 
+                                    readonly 
+                                    class="form-control"
+                                >                            
+                                {% if form.phone_number.value|slice:":3" == 'tg_' %}
+                                <div class="field-note">
+                                    <i class="fas fa-plus-circle"></i>
+                                    Нажмите, чтобы добавить номер
+                                </div>
+                                {% else %}
+                                <div class="field-note">
+                                    <i class="fas fa-lock"></i>
+                                    Телефон нельзя изменить
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="input-field">
+                                <label for="id_email">
+                                    <i class="fas fa-envelope"></i>
+                                    Email
+                                </label>
+                                {{ form.email }}
+                                <div class="field-note">
+                                    <i class="fas fa-info-circle"></i>
+                                    Для уведомлений и акций
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-save">
+                                <i class="fas fa-save"></i>
+                                Сохранить изменения
+                            </button>
+
+                            {% if user.is_admin or user.is_staff %}
+                            <div class="admin-actions">
+                                <a href="{% url 'admin:index' %}" class="btn-admin">
+                                    <i class="fas fa-cog"></i>
+                                    Админка
+                                </a>
+                                <a href="{% url 'order:list_orders_today' %}" class="btn-admin">
+                                    <i class="fas fa-list"></i>
+                                    Сегодня
+                                </a>
+                                <a href="{% url 'order:list_orders' %}" class="btn-admin">
+                                    <i class="fas fa-calendar"></i>
+                                    Записи
+                                </a>
+                            </div>
+                            {% endif %}
+
+                            <a href="{% url 'user:logout' %}" class="btn-logout">
+                                <i class="fas fa-sign-out-alt"></i>
+                                Выйти
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('.nav-tab');
+    const sections = document.querySelectorAll('.content-section');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const target = tab.dataset.target;
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            sections.forEach(section => {
+                section.classList.remove('active');
+                if (section.id === `${target}-section`) {
+                    section.classList.add('active');
+                }
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+    
+    const avatarInput = document.getElementById('id_image');
+    if (avatarInput) {
+        avatarInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type.match('image.*')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const avatar = document.querySelector('.avatar');
+                    if (avatar) {
+                        avatar.src = e.target.result;
+                    } else {
+                        const avatarDefault = document.querySelector('.avatar-default');
+                        if (avatarDefault) {
+                            avatarDefault.innerHTML = `<img src="${e.target.result}" alt="Аватар" class="avatar">`;
+                        }
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    
+    const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+    
+    document.querySelectorAll('.appointment-item, .modern-card').forEach(item => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateY(20px)';
+        item.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        observer.observe(item);
+    });
+});
+
+function contactMaster() {
+    window.location.href = '/about/contacts/';
+}
+</script>
+{% endblock content %}

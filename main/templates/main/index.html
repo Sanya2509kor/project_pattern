@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+    <title>{{ title }}</title>
+{% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/services.css' %}">
+{% endblock %}
+
+{% block content %}
+<section id="services" class="services-section">
+    <div class="container">
+        <div class="section-header text-center">
+            <h1 class="section-title gradient-text">{{ title_text }}</h1>
+            <p class="section-subtitle">{{ text }}</p>
+        </div>
+        
+        <div class="services-grid">
+            {% for product in goods %}
+                {% if product.show and product.image %}
+                <a href="{{ product.slug }}" class="service-card-link">
+                    <div class="service-card">
+                        <div class="service-image-container">
+                            <img src="{{ product.image.url }}" 
+                                 alt="{{ product.name }}" 
+                                 class="service-image"
+                                 loading="lazy"
+                                 width="400"
+                                 height="350">
+                            <!-- Бейдж скидки -->
+                            {% if product.has_discount %}
+                            <div class="discount-badge">
+                                -{{ product.get_discount_percent }}%
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="service-content">
+                            <h3 class="service-title">{{ product.name }}</h3>
+                            <p class="service-description">{{ product.description|truncatewords:15 }}</p>
+                            
+                            <div class="service-footer">
+                                <div class="price-wrapper">
+                                    {% if product.has_discount %}
+                                        <span class="old-price">{{ product.price }} ₽</span>
+                                        <span class="service-price">{{ product.get_discounted_price|floatformat:0 }} ₽</span>
+                                    {% else %}
+                                        <span class="service-price">{{ product.price }} ₽</span>
+                                    {% endif %}
+                                    {% if product.price_str %}
+                                        <span class="price-unit">{{ product.price_str }}</span>
+                                    {% endif %}
+                                </div>
+                                {% if product.make_time %}
+                                <span class="service-duration">
+                                    <i class="fas fa-clock"></i>
+                                    {{ product.make_time }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                {% endif %}
+            {% endfor %}
+        </div>
+        
+        {% include "pagination.html" %}
+        
+        <div class="cta-section text-center">
+            <div class="cta-content">
+                <h2>Не нашли нужный вариант?</h2>
+                <p>Свяжитесь со мной для индивидуальной консультации</p>
+                <a href="{% url 'about:contacts' %}" class="cta-button">
+                    <i class="fas fa-phone-alt"></i>
+                    Заказать консультацию
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const serviceCards = document.querySelectorAll('.service-card');
+    
+    if (serviceCards.length && 'IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '50px' });
+        
+        serviceCards.forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'all 0.6s ease';
+            observer.observe(card);
+        });
+    } else {
+        serviceCards.forEach(card => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        });
+    }
+});
+</script>
+{% endblock content %}

@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+<title>{{ title }}</title>
+{% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-page login-page">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-5 col-md-7">
+                <div class="auth-card login-card">
+                    <div class="auth-header text-center mb-4">
+                        <h1 class="auth-title">
+                            <i class="fas fa-sign-in-alt me-3"></i>Вход в аккаунт
+                        </h1>
+                        <p class="auth-subtitle">Введите ваши данные для входа</p>
+                    </div>
+
+                    <form action="{% url 'user:login' %}" method="post" id="login_form" class="auth-form">
+                        {% csrf_token %}
+                        
+                        {% if request.GET and 'next' in request.GET %}
+                            <input type="hidden" name="next" value="{{ request.GET.next }}">
+                        {% endif %}
+
+                        <div class="form-group mb-4">
+                            <label for="id_phone_number" class="form-label">
+                                <i class="fas fa-phone me-2"></i>Номер телефона
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-mobile-alt"></i>
+                                </span>
+                                <input type="text" 
+                                       class="form-control {% if form.username.errors %}is-invalid{% endif %}" 
+                                       id="id_phone_number"
+                                       value="{{ form.username.value|default_if_none:'+7' }}"  
+                                       name="username"
+                                       placeholder="+7 (999) 999-99-99" 
+                                       required
+                                       maxlength="12">
+                            </div>
+                            <div id="phone_number_error" class="alert alert-danger mt-2 d-none"></div>
+                            {% if form.username.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.username.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label for="id_password" class="form-label">
+                                <i class="fas fa-lock me-2"></i>Пароль
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-key"></i>
+                                </span>
+                                <input type="password" 
+                                       class="form-control {% if form.password.errors %}is-invalid{% endif %}" 
+                                       name="password"  
+                                       id="id_password" 
+                                       placeholder="Введите ваш пароль" 
+                                       required>
+                                <button type="button" class="input-group-text toggle-password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            {% if form.password.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.password.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <script src='https://www.google.com/recaptcha/api.js' async defer></script>
+                            <div class="g-recaptcha" data-sitekey="6LcjhJ0rAAAAAOgcSH2WR6wg_wlM99sl4Ay_BKWD"></div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100 auth-btn">
+                            <i class="fas fa-sign-in-alt me-2"></i>Войти
+                        </button>
+                    </form>
+
+                    <div class="auth-links text-center mt-4">
+                        <div class="mb-3">
+                            <a href="{% url 'users:password_reset_request' %}" class="text-primary forgot-link">
+                                <i class="fas fa-question-circle me-1"></i>Забыли пароль?
+                            </a>
+                        </div>
+                        <div class="auth-link-container text-center mt-4">
+                            <div class="auth-link-wrapper">
+                                <span class="auth-link-text">Нет аккаунта?</span>
+                                <a href="{% url 'user:registration' %}" class="auth-link">
+                                    <i class="fas fa-user-plus me-2"></i>
+                                    <span>Создать аккаунт</span>
+                                    <i class="fas fa-arrow-right ms-2"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="divider my-4">
+                        <span class="divider-text">или</span>
+                    </div>
+
+                    <div class="text-center">
+                        <h5 class="mb-3">Войти через Telegram</h5>
+                        <div class="telegram-btn-container">
+                            {% autoescape off %}{{ telegram_redirect }}{% endautoescape %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.querySelector('.toggle-password');
+    const passwordInput = document.getElementById('id_password');
+    
+    if (toggleBtn && passwordInput) {
+        toggleBtn.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.querySelector('i').classList.toggle('fa-eye');
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+        });
+    }
+    
+    const phoneInput = document.getElementById('id_phone_number');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/[^\d+]/g, '');
+            if (!value.startsWith('+7') && !value.startsWith('7') && !value.startsWith('8')) {
+                value = '+7';
+            }
+            let formatted = value.replace(/^(\+?7|8)(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})/, function(match, p1, p2, p3, p4, p5) {
+                let result = '+7';
+                if (p2) result += p2;
+                if (p3) result += p3;
+                if (p4) result += p4;
+                if (p5) result += p5;
+                return result;
+            });
+            e.target.value = formatted;
+        });
+    }
+    
+    const loginForm = document.getElementById('login_form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            let phoneNumber = document.getElementById('id_phone_number').value;
+            let cleanedPhoneNumber = phoneNumber.replace(/[^\d+]/g, '');
+            
+            if (cleanedPhoneNumber.startsWith('8')) {
+                cleanedPhoneNumber = '+7' + cleanedPhoneNumber.substring(1);
+            } else if (cleanedPhoneNumber.startsWith('7') && !cleanedPhoneNumber.startsWith('+7')) {
+                cleanedPhoneNumber = '+' + cleanedPhoneNumber;
+            }
+            
+            const regex = /^(\+7|7|8)\d{10}$/;
+            if (!regex.test(cleanedPhoneNumber)) {
+                e.preventDefault();
+                const errorDiv = document.getElementById('phone_number_error');
+                errorDiv.textContent = 'Введите корректный номер телефона (например: +79991234567)';
+                errorDiv.classList.remove('d-none');
+                return false;
+            }
+            
+            document.getElementById('id_phone_number').value = cleanedPhoneNumber;
+            return true;
+        });
+    }
+    
+    document.getElementById('id_phone_number')?.focus();
+});
+</script>
+{% endblock content %}
