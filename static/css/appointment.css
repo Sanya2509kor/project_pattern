@@ -1,0 +1,340 @@
+/* static/css/appointment.css - Стили для страницы записи */
+.appointment-page {
+    min-height: 100vh;
+    padding: 3rem 1rem;
+    background: linear-gradient(135deg, #f5f3ff 0%, #fce7f3 100%);
+}
+
+.appointment-card {
+    background: white;
+    border-radius: 2rem;
+    padding: 2rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: fadeInUp 0.6s ease;
+}
+
+.appointment-title {
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+}
+
+.appointment-subtitle {
+    color: #4b5563;
+    font-size: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.form-label i {
+    color: #6366f1;
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.input-wrapper input,
+.input-wrapper select,
+.input-wrapper textarea {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 1rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+    font-family: inherit;
+}
+
+.input-wrapper textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.input-wrapper input:focus,
+.input-wrapper select:focus,
+.input-wrapper textarea:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.input-wrapper .input-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6b7280;
+    font-size: 1rem;
+    pointer-events: none;
+}
+
+.input-wrapper textarea ~ .input-icon {
+    top: 1rem;
+    transform: none;
+}
+
+/* Выбор цветов */
+.color-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.color-option {
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.2s ease;
+}
+
+.color-option:hover {
+    transform: translateY(-2px);
+}
+
+.color-checkbox {
+    display: none;
+}
+
+.color-checkbox:checked + .color-image {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+    transform: scale(1.05);
+}
+
+.color-checkbox:checked ~ .color-name-badge {
+    background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+    color: white;
+    border-color: transparent;
+}
+
+.color-image {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #e5e7eb;
+    transition: all 0.3s ease;
+}
+
+.color-name-badge {
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    background: #f3f4f6;
+    padding: 0.25rem 0.5rem;
+    border-radius: 1rem;
+    white-space: nowrap;
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+    color: #374151;
+}
+
+.color-name {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: #f3f4f6;
+    border-radius: 2rem;
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+    color: #374151;
+}
+
+/* Кнопка записи */
+.btn-appointment {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+    border: none;
+    border-radius: 2rem;
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-appointment:hover:not(:disabled) {
+    background: linear-gradient(135deg, #4f46e5 0%, #db2777 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
+}
+
+.btn-appointment:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.btn-disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #6b7280;
+    color: white;
+}
+
+/* Дополнительная информация */
+.appointment-info {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 2px solid #f3f4f6;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.info-item {
+    text-align: center;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 1rem;
+    transition: all 0.3s ease;
+    color: #000000;
+}
+
+.info-item:hover {
+    background: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.info-icon-wrapper {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 0.75rem;
+    background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.info-icon {
+    font-size: 1.5rem;
+    color: white;
+}
+
+.info-item h5 {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.25rem;
+}
+
+.info-item p {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+/* Анимации */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease;
+}
+
+.shake {
+    animation: shake 0.5s ease;
+}
+
+.invalid-feedback {
+    color: #ef4444;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+input.is-invalid,
+select.is-invalid,
+textarea.is-invalid {
+    border-color: #ef4444;
+}
+
+@media (max-width: 768px) {
+    .appointment-card {
+        padding: 1.5rem;
+        border-radius: 1.5rem;
+    }
+    
+    .appointment-title {
+        font-size: 1.5rem;
+    }
+    
+    .input-wrapper input,
+    .input-wrapper select,
+    .input-wrapper textarea {
+        padding: 0.625rem 0.875rem 0.625rem 2.5rem;
+        font-size: 16px;
+    }
+    
+    .btn-appointment {
+        padding: 0.875rem;
+        font-size: 0.938rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .appointment-card {
+        padding: 1.25rem;
+    }
+    
+    .info-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .color-image {
+        width: 50px;
+        height: 50px;
+    }
+}
